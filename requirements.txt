@@ -1,2 +1,1 @@
 numpy >= 1.17
-pycore @ git+https://github.com/processand-technologies/python_core.git#egg=pycore

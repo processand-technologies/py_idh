@@ -11,10 +11,11 @@ import pandas as pd
 from pathlib import Path
 from threading import Thread
 
-from pycore.classes.singleton_class import Singleton
+from ..core.singleton_class import Singleton
+import py_idh.container as container
 
 # error handling and logging
-from pycore.logging import error_handler, logging
+from ..core.logging import error_handler, logging
 
 def start_background_loop(_loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(_loop)
@@ -37,14 +38,8 @@ class PythonJdbc():
         self.session = Session()
         
     def load_config(self):
-        file_directory = Path(__file__).parent.parent / "config.yaml"
-        try:
-            with open(file_directory, 'r') as ymlfile:
-                cfg = yaml.safe_load(ymlfile)
-        except:
-            print(traceback.format_exc())
-        self._javaHost = cfg['javaHost']
-        self._javaPort = cfg['javaPort']
+        self._javaHost = container.javaHost
+        self._javaPort = container.javaPort
 
     @property
     def java_ready(self):

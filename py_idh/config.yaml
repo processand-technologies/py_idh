@@ -2,3 +2,6 @@
 
 javaHost: "localhost"
 javaPort: 3003
+
+# logging level info/debug/root
+loggingLevel: 'debug' 
