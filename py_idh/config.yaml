@@ -1,0 +1,4 @@
+# configuration parameters
+
+javaHost: "localhost"
+javaPort: 3003
