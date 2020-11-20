@@ -214,7 +214,7 @@ class PythonJdbc():
             if msg['frameNb'] >= msg['totalNbFrames']:
                 is_stream = msg.get('isStream', False) or 'streamedPartitions' in self._runningTasks[msg['taskId']]
                 if not is_stream:
-                    logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', received last frame ({msg['frameNb']}/{msg['totalNbFrames']} frames)")
+                    logging('debug', self.logging_label, f"Received last frame ({msg['frameNb']}/{msg['totalNbFrames']} frames)")
                 msgObject = json.loads(self._runningTasks[msg['taskId']]['sqlResult']) if 'sqlResult' in self._runningTasks[msg['taskId']] else {}
                 self._runningTasks[msg['taskId']]['sqlResult'] = ''
                 description = msg['description'] if 'description' in msg else None
@@ -242,12 +242,12 @@ class PythonJdbc():
                             self._runningTasks[msg['taskId']]['streamedPartitions'].append(result)
                             if msgObject.get('streamPartitionNb'):
                                 if msgObject.get('streamPartitionNb') % 100 == 0:
-                                    logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', received streaming partition nb {msgObject.get('streamPartitionNb')}")
+                                    logging('debug', self.logging_label, f"Received streaming partition nb {msgObject.get('streamPartitionNb')}")
                                 elif msgObject.get('streamPartitionNb') == 1:
-                                    logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', data stream initiated")
+                                    logging('debug', self.logging_label, f"Data stream initiated")
                         else:
                             cumulated_result = pd.concat(self._runningTasks[msg['taskId']]['streamedPartitions'] + [result])
-                            logging('info', self.logging_label, f"Successfully finished task with ID '{msg['taskId']}'")
+                            logging('info', self.logging_label, f"Successfully finished task")
                             self._finishedTasks[msg['taskId']] = {
                                 'status': 'success', 
                                 'result': cumulated_result}
@@ -256,11 +256,11 @@ class PythonJdbc():
                         self._finishedTasks[msg['taskId']] = {
                             'status': 'success', 
                             'result': result}
-                        logging('info', self.logging_label, f"Successfully finished task with ID '{msg['taskId']}'")
+                        logging('info', self.logging_label, f"Successfully finished task")
                 if not is_stream and msg['taskId'] in self._runningTasks:
                     del self._runningTasks[msg['taskId']]
         except Exception as e:
-            logging('error', self.logging_label, (f"Error in task with ID '{msg['taskId']}': \n" if 'taskId' in msg else '') + str(e) )
+            logging('error', self.logging_label, str(e) )
             logging('debug', self.logging_label, traceback.format_exc())
             # emit finish event and remove task from running tasks
             if 'taskId' in msg and msg['taskId']:
