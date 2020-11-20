@@ -23,6 +23,8 @@ def setup_logging():
         # handler = handlers.RotatingFileHandler(f'{log_file_path}//{log_file_base_name}.log', maxBytes=10*10**6, backupCount=2)
         # handler.setFormatter(formatter) 
         # info_logger.addHandler(handler)
+        if container.loggingLevel.lower() not in ('debug', 'root'):
+            info_logger.addHandler(_logging.StreamHandler(sys.stdout))
         info_logger.setLevel(_logging.INFO)
         info_logger.info("Logger initialized")
         container.logger = info_logger
@@ -32,6 +34,7 @@ def setup_logging():
         # handler_debug = handlers.RotatingFileHandler(f'{log_file_path}//{log_file_base_name}_debug.log', maxBytes=container.loggingFileSize, backupCount=6)
         # handler_debug.setFormatter(formatter)
         # logger_debug.addHandler(handler_debug)
+        logger_debug.addHandler(_logging.StreamHandler(sys.stdout))
         logger_debug.setLevel(_logging.DEBUG)
         logger_debug.info("Debug Logger initialized")
         container.logger_debug = logger_debug
@@ -41,6 +44,7 @@ def setup_logging():
         # handler_root = handlers.RotatingFileHandler(f'{log_file_path}//{log_file_base_name}_root.log', maxBytes=container.loggingFileSize, backupCount=8)
         # handler_root.setFormatter(formatter)
         # logger_root.addHandler(handler_root)
+        logger_root.addHandler(_logging.StreamHandler(sys.stdout))
         logger_root.setLevel(_logging.DEBUG)
         logger_root.info("Root Logger initialized")
         container.logger_root = logger_root

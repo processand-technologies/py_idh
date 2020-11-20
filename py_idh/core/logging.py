@@ -1,5 +1,6 @@
 from .setup_logging import setup_logging
 import py_idh.container as container
+import sys
 
 def error_handler(error, trace = None, label = None): 
     """
@@ -25,6 +26,7 @@ def error_handler(error, trace = None, label = None):
         container.logger_debug.error(label + error)
         if trace:
             container.logger_debug.error(label + trace)
+    sys.stdout.flush()
     raise Exception (error)
 
 def logging(level, label, message): 
@@ -54,4 +56,5 @@ def logging(level, label, message):
         container.logger_debug.warning(label + ' ' + message)
     elif level == 'debug' and container.loggingLevel.lower() in ('debug', 'root'):
         container.logger_debug.debug(label + ' ' + message)
+    sys.stdout.flush()
     

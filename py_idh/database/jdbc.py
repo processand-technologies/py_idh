@@ -212,7 +212,7 @@ class PythonJdbc():
             
             # when all frames arrived, process the result
             if msg['frameNb'] >= msg['totalNbFrames']:
-                is_stream = msg.get('isStream', False)
+                is_stream = msg.get('isStream', False) or 'streamedPartitions' in self._runningTasks[msg['taskId']]
                 if not is_stream:
                     logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', received last frame ({msg['frameNb']}/{msg['totalNbFrames']} frames)")
                 msgObject = json.loads(self._runningTasks[msg['taskId']]['sqlResult']) if 'sqlResult' in self._runningTasks[msg['taskId']] else {}
@@ -240,10 +240,10 @@ class PythonJdbc():
                             if 'streamedPartitions' not in self._runningTasks[msg['taskId']]:
                                 self._runningTasks[msg['taskId']]['streamedPartitions'] = []
                             self._runningTasks[msg['taskId']]['streamedPartitions'].append(result)
-                            if msgObject.get('streamPartition'):
-                                if msgObject.get('streamPartition') % 100 == 0:
-                                    logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', received streaming partition nb {msgObject.get('streamPartition')}")
-                                elif msgObject.get('streamPartition') == 1:
+                            if msgObject.get('streamPartitionNb'):
+                                if msgObject.get('streamPartitionNb') % 100 == 0:
+                                    logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', received streaming partition nb {msgObject.get('streamPartitionNb')}")
+                                elif msgObject.get('streamPartitionNb') == 1:
                                     logging('debug', self.logging_label, f"Task with id '{msg['taskId']}', data stream initiated")
                         else:
                             cumulated_result = pd.concat(self._runningTasks[msg['taskId']]['streamedPartitions'] + [result])
