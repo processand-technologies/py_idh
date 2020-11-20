@@ -84,7 +84,8 @@ class PythonJdbc():
         token = None, 
         host = None,
         port = None,
-        limit = None): 
+        limit = None,
+        send_directly = False): 
         """
         send web request to JAVA Server to start run sql statement
         :returns: query result
@@ -94,15 +95,17 @@ class PythonJdbc():
                 'taskId': str(uuid.uuid4()),
                 'command': 'execute',
                 'params': {
-                    'query': query,
-                },
-                'connectionId': connection_id if connection_id else connection_data['id'],
-                'host': host,
-                'port': port}
+                    'query': query,}}
+        if connection_id:
+            task_data['connectionId'] = connection_id 
+        else:
+            task_data['connectionData'] = connection_data 
+        if host and port:
+            task_data.update({'host': host, 'port': port})
+        if send_directly:
+            task_data['send_directly'] = send_directly
         if limit:
             task_data['params']['limit'] = limit
-        if connection_data:
-            task_data['connectionData'] = connection_data
         return self._addTask(task_data)
 
     # init web sockets
@@ -279,13 +282,16 @@ class PythonJdbc():
         # add event listener for waiting result from java server
         try:
             headers = { 'authorization': self.token, 'Content-type': 'application/json' }
-            if taskData.get("send_directly"):
+            if taskData.pop("send_directly"):
+                print(taskData)
                 resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
             else:
-                resp = self.session.post(f"http://{taskData.pop('host') or container.nodeHost}:{taskData.pop('port') or container.nodePort}/api/external/run-sql-statement", data=json.dumps({'taskData': taskData}), headers = headers , timeout = 36000)               
+                port = taskData.pop('port')
+                host = taskData.pop('host')
+                resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps({'taskData': taskData}), headers = headers , timeout = 36000)               
             # resp.raise_for_status()
             if resp.status_code >= 400:
-                error_handler(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")
+                raise Exception(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")
             # wait for result from ws
             counter = 0
             while taskData['taskId'] not in self._finishedTasks and counter < 10 * 60 * 60 * 10:
@@ -294,7 +300,7 @@ class PythonJdbc():
                 counter += 1
             result = self._finishedTasks.pop(taskData['taskId'])
             if result.get('error'):
-                error_handler(f"Java-Server Error: \n'{result['error']}'", None, self.logging_label)
+                raise Exception(f"Java-Server Error: \n'{result['error']}'")
             else:
                 return result['result']
         except Exception as err:
@@ -304,5 +310,8 @@ class PythonJdbc():
                 attemptNb += 1
                 return self._addTask(taskData, attemptNb)
             else:
-                error_handler(f"error in web request", traceback.format_exc(), self.logging_label)
+                if str(err).startswith('bad request') or str(err).startswith('Java-Server Error'):
+                    raise Exception(str(err))
+                else:
+                    error_handler(f"error in web request", traceback.format_exc(), self.logging_label)
            
