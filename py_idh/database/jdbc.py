@@ -283,7 +283,6 @@ class PythonJdbc():
         try:
             headers = { 'authorization': self.token, 'Content-type': 'application/json' }
             if taskData.pop("send_directly"):
-                print(taskData)
                 resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
             else:
                 port = taskData.pop('port')
