@@ -76,11 +76,14 @@ class PythonJdbc():
         if counter == 120:
             error_handler(f"Could not reach Java Server via websockets", None, self.logging_label)
 
-    def execute(self,
+    def execute(
+        self,
         query, 
         connection_id = None,
         connection_data = None,
         token = None, 
+        host = None,
+        port = None,
         limit = None): 
         """
         send web request to JAVA Server to start run sql statement
@@ -92,7 +95,10 @@ class PythonJdbc():
                 'command': 'execute',
                 'params': {
                     'query': query,
-                    'connectionId': connection_id if connection_id else connection_data['id'],}}
+                },
+                'connectionId': connection_id if connection_id else connection_data['id'],
+                'host': host,
+                'port': port}
         if limit:
             task_data['params']['limit'] = limit
         if connection_data:
@@ -273,7 +279,10 @@ class PythonJdbc():
         # add event listener for waiting result from java server
         try:
             headers = { 'authorization': self.token, 'Content-type': 'application/json' }
-            resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
+            if taskData.get("send_directly"):
+                resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
+            else:
+                resp = self.session.post(f"http://{taskData.pop('host') or container.nodeHost}:{taskData.pop('port') or container.nodePort}/api/external/run-sql-statement", data=json.dumps({'taskData': taskData}), headers = headers , timeout = 36000)               
             # resp.raise_for_status()
             if resp.status_code >= 400:
                 error_handler(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")
