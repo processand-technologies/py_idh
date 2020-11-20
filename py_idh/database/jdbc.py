@@ -282,7 +282,8 @@ class PythonJdbc():
         # add event listener for waiting result from java server
         try:
             headers = { 'authorization': self.token, 'Content-type': 'application/json' }
-            if taskData.pop("send_directly"):
+            if taskData.get('send_directly'):
+                del taskData['send_directly']
                 resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
             else:
                 port = taskData.pop('port')
