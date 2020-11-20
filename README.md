@@ -18,3 +18,14 @@ these files are created (updated) using
 ```
 python setup.py sdist bdist_wheel
 ```
+
+Usage
+1. directly connection to jdbc server
+```
+from py_idh.database import PythonJdbc
+mssql =  {
+        "id": ...
+}
+token = "..."
+PythonJdbc.execute("SELECT TOP 3* FROM dbo.BSEG", connection_data = mssql, token = token)
+```
