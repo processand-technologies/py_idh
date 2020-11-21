@@ -1,7 +1,10 @@
 import traceback
 import yaml
 from pathlib import Path
+import warnings
 import py_idh.container as container
+
+warnings.filterwarnings('ignore')
 
 config_file_directory = Path(__file__).parent / "config.yaml"
 try:
