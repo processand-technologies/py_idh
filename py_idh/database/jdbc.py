@@ -80,15 +80,25 @@ class PythonJdbc():
         self,
         query, 
         connection_id = None,
-        connection_data = None,
         token = None, 
         host = None,
         port = None,
         limit = None,
-        send_directly = False): 
+        jdbc_token = False,
+        connection_data = None): 
         """
         send web request to JAVA Server to start run sql statement
-        :returns: query result
+        
+        :param query: Sql statement string (only one statement allowed at once e.g. in HANA database)
+        :param connection_id: connection id as saved in idh
+        :param token: your dh-token
+        :param host: idh server host
+        :param port: idh server port
+        :param limit: optional limit to a query to be set
+        :param jdbc_token: jdbc server token to send task directly to jdbc server instead of idh server
+        :param connection_data: if jdbc_token is provided - here you put a dictionary with the connection details
+
+        :returns: query result as dataframe or None if execution without result set
         """
         self.token = token
         task_data = {
@@ -102,8 +112,8 @@ class PythonJdbc():
             task_data['connectionData'] = connection_data 
         if host and port:
             task_data.update({'host': host, 'port': port})
-        if send_directly:
-            task_data['send_directly'] = send_directly
+        if jdbc_token:
+            task_data['jdbc_token'] = jdbc_token
         if limit:
             task_data['params']['limit'] = limit
         return self._addTask(task_data)
@@ -282,11 +292,11 @@ class PythonJdbc():
 
         # add event listener for waiting result from java server
         try:
-            headers = { 'authorization': self.token, 'Content-type': 'application/json' }
-            if taskData.get('send_directly'):
-                del taskData['send_directly']
+            if taskData.get('jdbc_token'):
+                headers = { 'authorization': taskData.pop('jdbc_token'), 'Content-type': 'application/json' }
                 resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
             else:
+                headers = { 'authorization': self.token, 'Content-type': 'application/json' }
                 port = taskData.pop('port')
                 host = taskData.pop('host')
                 resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps({'taskData': taskData}), headers = headers , timeout = 36000)               
