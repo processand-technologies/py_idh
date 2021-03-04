@@ -1,6 +1,6 @@
 # configuration parameters
 
-javaHost: "localhost"
+javaHost: "jdbc"
 javaPort: 3003
 nodeHost: "datahub"
 nodePort: 3001
