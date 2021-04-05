@@ -1,8 +1,8 @@
 # configuration parameters
 
-javaHost: "jdbc"
+javaHost: "127.0.0.1"
 javaPort: 3003
-nodeHost: "datahub"
+nodeHost: "127.0.0.1"
 nodePort: 3001
 
 # logging level info/debug/root
