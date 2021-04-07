@@ -6,4 +6,4 @@ nodeHost: "datahub"
 nodePort: 3001
 
 # logging level info/debug/root
-loggingLevel: 'debug' 
+loggingLevel: 'info' 
