@@ -303,14 +303,14 @@ class PythonJdbc():
                 data = {'taskData': taskData}
                 if taskData.get('connectionId'):
                     data['connectionId'] = taskData.pop('connectionId')
-                print(taskData)
                 sys.stdout.flush()
                 resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps(data), headers = headers , timeout = 36000)               
             # resp.raise_for_status()
             if resp.status_code >= 400:
                 raise Exception(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")
+            elif resp.json().get('error'):
+                raise Exception(f"task cannot be transmitted to jdbc server, error: \n'{resp.json()['error']}'")
             else:
-                print(resp.status_code)
                 sys.stdout.flush()
             # wait for result from ws
             counter = 0
