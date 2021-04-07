@@ -253,7 +253,7 @@ class PythonJdbc():
                             self._runningTasks[msg['taskId']]['streamedPartitions'].append(result)
                             if msgObject.get('streamPartitionNb'):
                                 if msgObject.get('streamPartitionNb') % 50 == 0:
-                                    logging('debug', self.logging_label, f"Received streaming partition nb {msgObject.get('streamPartitionNb')}" + 
+                                    logging('info', self.logging_label, f"Received streaming partition nb {msgObject.get('streamPartitionNb')}" + 
                                         (f", {msgObject['nbRows']} rows streamed so far" if msgObject.get('nbRows') else ''))
                                 elif msgObject.get('streamPartitionNb') == 1:
                                     logging('info', self.logging_label, f"Data stream initiated")
