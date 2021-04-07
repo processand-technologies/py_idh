@@ -299,7 +299,10 @@ class PythonJdbc():
                 headers = { 'authorization': self.token, 'Content-type': 'application/json' }
                 port = taskData.pop('port', None)
                 host = taskData.pop('host', None)
-                resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps({'taskData': taskData}), headers = headers , timeout = 36000)               
+                data = {'taskData': taskData}
+                if task_data.get('connectionId'):
+                    data['connectionId'] = task_data.pop('connectionId')
+                resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps(data), headers = headers , timeout = 36000)               
             # resp.raise_for_status()
             if resp.status_code >= 400:
                 raise Exception(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")

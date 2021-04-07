@@ -12,7 +12,7 @@ install:
 	CYTHONIZE=1 pip install .
 
 install-from-source: dist
-	pip install dist/py_idh-0.1.1.tar.gz
+	pip install dist/py_idh-0.1.2.tar.gz
 
 clean:
 	$(RM) -r build dist py_idh/*.egg-info
