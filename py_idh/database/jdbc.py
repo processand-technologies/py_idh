@@ -160,7 +160,7 @@ class PythonJdbc():
             else:
                 await asyncio.sleep(5)
                 # try again to connect 
-                logging('debug', self.logging_label, "attempt to reconnect with java through websockets failed")
+                logging('warn', self.logging_label, "attempt to reconnect with java through websockets failed")
                 kw['isReconnect'] = True
                 await self.init(loop, **kw)
 
@@ -256,7 +256,7 @@ class PythonJdbc():
                                     logging('debug', self.logging_label, f"Received streaming partition nb {msgObject.get('streamPartitionNb')}" + 
                                         (f", {msgObject['nbRows']} rows streamed so far" if msgObject.get('nbRows') else ''))
                                 elif msgObject.get('streamPartitionNb') == 1:
-                                    logging('debug', self.logging_label, f"Data stream initiated")
+                                    logging('info', self.logging_label, f"Data stream initiated")
                         else:
                             cumulated_result = pd.concat(self._runningTasks[msg['taskId']]['streamedPartitions'] + [result])
                             logging('info', self.logging_label, f"Successfully finished task")
