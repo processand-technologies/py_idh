@@ -10,6 +10,7 @@ from requests import Session
 import pandas as pd
 from pathlib import Path
 from threading import Thread
+import sys
 
 from ..core.singleton_class import Singleton
 import py_idh.container as container
@@ -302,10 +303,15 @@ class PythonJdbc():
                 data = {'taskData': taskData}
                 if taskData.get('connectionId'):
                     data['connectionId'] = taskData.pop('connectionId')
+                print(taskData)
+                sys.stdout.flush()
                 resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps(data), headers = headers , timeout = 36000)               
             # resp.raise_for_status()
             if resp.status_code >= 400:
                 raise Exception(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")
+            else:
+                print(resp.status_code)
+                sys.stdout.flush()
             # wait for result from ws
             counter = 0
             while taskData['taskId'] not in self._finishedTasks and counter < 10 * 60 * 60 * 10:
