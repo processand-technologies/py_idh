@@ -300,8 +300,8 @@ class PythonJdbc():
                 port = taskData.pop('port', None)
                 host = taskData.pop('host', None)
                 data = {'taskData': taskData}
-                if task_data.get('connectionId'):
-                    data['connectionId'] = task_data.pop('connectionId')
+                if taskData.get('connectionId'):
+                    data['connectionId'] = taskData.pop('connectionId')
                 resp = self.session.post(f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement", data=json.dumps(data), headers = headers , timeout = 36000)               
             # resp.raise_for_status()
             if resp.status_code >= 400:
