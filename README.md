@@ -11,8 +11,8 @@ python install . (resp. path to module)
 ```    
 3. or install from just the tar/whl file saved locally
 ```
-pip install py_idh-0.1.0-py3-none-any.whl
-pip install py_idh-0.1.0.tar.gz
+pip install py_idh-0.1.1-py3-none-any.whl
+pip install py_idh-0.1.1.tar.gz
 ```
 these files are created (updated) using
 ```
