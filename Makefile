@@ -1,18 +1,18 @@
 .PHONY: build dist redist install install-from-source clean uninstall
 
 build:
-	CYTHONIZE=1 ./setup.py build
+	./setup.py build
 
 dist:
-	CYTHONIZE=1 ./setup.py sdist bdist_wheel
+	./setup.py sdist bdist_wheel
 
 redist: clean dist
 
 install:
-	CYTHONIZE=1 pip install .
+	pip install .
 
 install-from-source: dist
-	pip install dist/py_idh-0.1.4.tar.gz
+	pip install dist/py_idh-0.1.5.tar.gz
 
 clean:
 	$(RM) -r build dist py_idh/*.egg-info
