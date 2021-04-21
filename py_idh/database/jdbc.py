@@ -103,10 +103,10 @@ class PythonJdbc():
         """
         self.token = token
         task_data = {
-                'taskId': str(uuid.uuid4()),
-                'command': 'execute',
-                'params': {
-                    'query': query,}}
+            'taskId': str(uuid.uuid4()),
+            'command': 'execute',
+            'params': {
+                'query': query,}}
         if connection_id:
             task_data['connectionId'] = connection_id 
         else:
@@ -117,6 +117,47 @@ class PythonJdbc():
             task_data['jdbc_token'] = jdbc_token
         if limit:
             task_data['params']['limit'] = limit
+        return self._addTask(task_data)
+
+    def batchStatement (
+        self,
+        query, 
+        params,
+        connection_id = None,
+        token = None, 
+        host = None,
+        port = None,
+        jdbc_token = False,
+        connection_data = None):  
+        """
+        send web request to JDBC Server to run batch statement and returns update counts for each statement (this means array of ones with length the number of rows in the matrix)
+        
+        :param query: Sql statement string (only one statement allowed at once e.g. in HANA database)
+        :param params: 2d list of parameters 
+        :param connection_id: connection id as saved in idh
+        :param token: your dh-token
+        :param host: idh server host
+        :param port: idh server port
+        :param jdbc_token: jdbc server token to send task directly to jdbc server instead of idh server
+        :param connection_data: if jdbc_token is provided - here you put a dictionary with the connection details
+
+        :returns: a list of number 1/0 for success/failure
+        """
+        self.token = token
+        task_data = {
+            'taskId': str(uuid.uuid4()),
+            'command': 'executeBatch',
+            'params': {
+                'query': query,
+                'params': params}}
+        if connection_id:
+            task_data['connectionId'] = connection_id 
+        else:
+            task_data['connectionData'] = connection_data 
+        if host and port:
+            task_data.update({'host': host, 'port': port})
+        if jdbc_token:
+            task_data['jdbc_token'] = jdbc_token
         return self._addTask(task_data)
 
     # init web sockets
@@ -244,8 +285,11 @@ class PythonJdbc():
                 else:
                     # combine column name and value to return
                     result = None
-                    if 'result' in msgObject:                            
-                        result = pd.DataFrame.from_records(data = msgObject['result'] if msgObject['result'] else [], columns = msgObject['colNames'])  
+                    if 'result' in msgObject:    
+                        if self._runningTasks[msg['taskId']]['command'] == 'executeBatch':
+                            result = pd.DataFrame([[entry] for entry in msgObject['result']], columns = ['result'])
+                        else:
+                            result = pd.DataFrame.from_records(data = msgObject['result'] if msgObject['result'] else [], columns = msgObject['colNames'])  
                     if is_stream or 'streamedPartitions' in self._runningTasks[msg['taskId']]:
                         if not msgObject.get('endOfStream'):
                             if 'streamedPartitions' not in self._runningTasks[msg['taskId']]:
@@ -293,9 +337,12 @@ class PythonJdbc():
 
         # add event listener for waiting result from java server
         try:
-            if taskData.get('jdbc_token'):
-                headers = { 'authorization': taskData.pop('jdbc_token'), 'Content-type': 'application/json' }
-                resp = self.session.post(f"http://{self._javaHost}:{self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
+            jdbc_token = taskData.pop('jdbc_token', None)
+            if jdbc_token:
+                port = taskData.pop('port', None)
+                host = taskData.pop('host', None)
+                headers = { 'authorization': jdbc_token, 'Content-type': 'application/json' }
+                resp = self.session.post(f"http://{host or self._javaHost}:{port or self._javaPort}/jdbc-server/addTask", data=json.dumps(taskData), headers = headers , timeout = 36000)
             else:
                 headers = { 'authorization': self.token, 'Content-type': 'application/json' }
                 port = taskData.pop('port', None)
@@ -307,7 +354,7 @@ class PythonJdbc():
             # resp.raise_for_status()
             if resp.status_code >= 400:
                 raise Exception(f"bad request, status {resp.status_code} (reason: '{resp.reason}')")
-            elif resp.json().get('error'):
+            elif not jdbc_token and resp.json().get('error'):
                 raise Exception(f"task cannot be transmitted to jdbc server, error: \n'{resp.json()['error']}'")
             # wait for result from ws
             counter = 0
