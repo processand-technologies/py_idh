@@ -119,7 +119,7 @@ class PythonJdbc():
             task_data['params']['limit'] = limit
         return self._addTask(task_data)
 
-    def batchStatement (
+    def execute_batch (
         self,
         query, 
         params,

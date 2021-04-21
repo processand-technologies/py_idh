@@ -34,5 +34,5 @@ class TestJdbc:
         from py_idh.database import PythonJdbc
 
         # use db connection through python_jdbc package --> connection will be registered in java server
-        result = PythonJdbc.batchStatement("INSERT INTO dbo.MINI_TABLE VALUES(?)", host = '127.0.0.1', port = 3003, connection_data =  env.testMssql, params = [['test'], ['None']], jdbc_token = env.httpToken)
+        result = PythonJdbc.execute_batch("INSERT INTO dbo.MINI_TABLE VALUES(?)", host = '127.0.0.1', port = 3003, connection_data =  env.testMssql, params = [['test'], ['None']], jdbc_token = env.httpToken)
         assert result.values.tolist() == [[1],[1]]
