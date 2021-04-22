@@ -359,8 +359,8 @@ class PythonJdbc():
             # wait for result from ws
             counter = 0
             while taskData['taskId'] not in self._finishedTasks and counter < 10 * 60 * 60 * 10:
-                # ten hours maximal wait period
-                time.sleep(0.1)
+                # five hours maximal wait period
+                time.sleep(0.02)
                 counter += 1
             result = self._finishedTasks.pop(taskData['taskId'])
             if result.get('error'):
