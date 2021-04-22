@@ -89,6 +89,13 @@ class PythonJdbc():
         connection_data = None): 
         """
         send web request to JAVA Server to start run sql statement
+
+        e.g.
+        ```
+        from py_idh.database import PythonJdbc
+        user_token = "..." 
+        PythonJdbc.execute("SELECT TOP 3* FROM dbo.BSEG", connection_id = ..., token = user_token)
+        ```
         
         :param query: Sql statement string (only one statement allowed at once e.g. in HANA database)
         :param connection_id: connection id as saved in idh
@@ -131,8 +138,16 @@ class PythonJdbc():
         connection_data = None):  
         """
         send web request to JDBC Server to run batch statement and returns update counts for each statement (this means array of ones with length the number of rows in the matrix)
+
+        e.g.
+        ```
+        from py_idh.database import PythonJdbc
+        user_token = "..." 
+        param_list = [[1,2], [3,4]]
+        PythonJdbc.execute_batch("INSERT INTO dbo.MINI_TABLE VALUES(?, ?)", params = param_list, connection_id = ..., token = user_token)
+        ```
         
-        :param query: Sql statement string (only one statement allowed at once e.g. in HANA database)
+        :param query: Sql statement string (only one statement allowed at once e.g. in HANA database), with as many ? in it as every entry in the param list
         :param params: 2d list of parameters 
         :param connection_id: connection id as saved in idh
         :param token: your dh-token
@@ -141,7 +156,7 @@ class PythonJdbc():
         :param jdbc_token: jdbc server token to send task directly to jdbc server instead of idh server
         :param connection_data: if jdbc_token is provided - here you put a dictionary with the connection details
 
-        :returns: a list of number 1/0 for success/failure
+        :returns: a dataframe with column 'result' and integers 1/0 for each iterations success/failure
         """
         self.token = token
         task_data = {
