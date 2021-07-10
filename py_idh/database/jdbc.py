@@ -27,8 +27,8 @@ class PythonJdbc():
 
     def __init__(self, **args):
         self.logging_label = 'idh_jdbc'
-        self._javaHost = None
-        self._javaPort = None
+        self._javaHost = args.get('java_host', None)
+        self._javaPort = args.get('java_port', None)
         self._runningTasks = {}
         self._finishedTasks = {}
         self._clientId = str(uuid.uuid4())
@@ -39,8 +39,8 @@ class PythonJdbc():
         self.session = Session()
         
     def load_config(self):
-        self._javaHost = container.javaHost
-        self._javaPort = container.javaPort
+        self._javaHost = self._javaHost or container.javaHost
+        self._javaPort = self._javaPort or container.javaPort
 
     @property
     def java_ready(self):

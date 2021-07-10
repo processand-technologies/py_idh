@@ -12,7 +12,7 @@ install:
 	pip install .
 
 install-from-source: dist
-	pip install dist/py_idh-0.1.6.tar.gz
+	pip install dist/py_idh-1.0.1.tar.gz
 
 clean:
 	$(RM) -r build dist py_idh/*.egg-info
