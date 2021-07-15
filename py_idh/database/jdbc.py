@@ -175,6 +175,56 @@ class PythonJdbc():
             task_data['jdbc_token'] = jdbc_token
         return self._addTask(task_data)
 
+    def execute_script (
+        self,
+        script_id,
+        section_ids = None,
+        target_branch = 'master',
+        connection_id = None,
+        token = None, 
+        limit = None,
+        host = None,
+        port = None,
+        connection_data = None):
+        """
+        send web request to JDBC Server to run sections in script, if no section ids are given all checked sections are executed
+        e.g.
+        ```
+        from py_idh.database import PythonJdbc
+        user_token = "..." 
+        PythonJdbc.execute_script(script_id = ..., section_ids = [.,., ...], connection_id = ..., token = user_token)
+        ```
+        
+        :param script_id: IDH sql script id
+        :param section_ids: list of section ids, if not given (or empty) all sections that are checked are executed
+        :param target_branch: git branch to execute from
+        :param connection_id: connection id as saved in idh
+        :param token: your dh-token
+        :param limit: optional limit to a query to be set
+        :param host: idh server host
+        :param port: idh server port
+        :param connection_data: if jdbc_token is provided - here you put a dictionary with the connection details
+
+        :returns: a dataframe with column 'result' and integers 1/0 for each iterations success/failure
+        """
+        self.token = token
+        params = {'scriptId': script_id, 'targetBranch': target_branch}
+        if limit:
+            params['limit'] = limit
+        if section_ids:
+            params['sectionIds'] = section_ids
+        task_data = {
+            'taskId': str(uuid.uuid4()),
+            'command': 'executeScript',
+            'params': params}
+        if connection_id:
+            task_data['connectionId'] = connection_id 
+        else:
+            task_data['connectionData'] = connection_data 
+        if host and port:
+            task_data.update({'host': host, 'port': port})
+        return self._addTask(task_data)
+
     # init web sockets
     async def _init_ws(self, loop, **kw):
         logging('info', self.logging_label, f"Initializing web socket on '{self._javaHost}:{self._javaPort}'..." )
