@@ -430,12 +430,17 @@ class PythonJdbc():
                     time.sleep(0.02)
                     counter += 1
                 result = self._finishedTasks.pop(taskData['taskId'])
+                if result.get('error'):
+                    raise Exception(f"Java-Server Error: \n'{result['error']}'")
+                else:
+                    return result['result']
             else:
-                result = resp.json().get('result')
-            if result.get('error'):
-                raise Exception(f"Java-Server Error: \n'{result['error']}'")
-            else:
-                return result['result']
+                result = resp.json()
+                if result.get('error'):
+                    raise Exception(f"IDH Error: \n'{result['error']}'")
+                else:
+                    return pd.DataFrame.from_records(data = result['data'] if result['data'] else [], columns = result['columns']) 
+            
         except Exception as err:
             if ('ECONNRESET' in str(err) or 'is not registered as websocket client' in str(err)) and attemptNb < 4:
                 # retry after waiting a little, there are too many tasks running
