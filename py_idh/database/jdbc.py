@@ -216,6 +216,7 @@ class PythonJdbc():
         task_data = {
             'taskId': str(uuid.uuid4()),
             'command': 'executeScript',
+            'returnDirectly': True,
             'params': params}
         if connection_id:
             task_data['connectionId'] = connection_id 
@@ -422,12 +423,15 @@ class PythonJdbc():
             elif not jdbc_token and resp.json().get('error'):
                 raise Exception(f"task cannot be transmitted to jdbc server, error: \n'{resp.json()['error']}'")
             # wait for result from ws
-            counter = 0
-            while taskData['taskId'] not in self._finishedTasks and counter < 10 * 60 * 60 * 10:
-                # five hours maximal wait period
-                time.sleep(0.02)
-                counter += 1
-            result = self._finishedTasks.pop(taskData['taskId'])
+            if not taskData.get('returnDirectly'):
+                counter = 0
+                while taskData['taskId'] not in self._finishedTasks and counter < 10 * 60 * 60 * 10:
+                    # five hours maximal wait period
+                    time.sleep(0.02)
+                    counter += 1
+                result = self._finishedTasks.pop(taskData['taskId'])
+            else:
+                result = resp.json().get('result')
             if result.get('error'):
                 raise Exception(f"Java-Server Error: \n'{result['error']}'")
             else:
