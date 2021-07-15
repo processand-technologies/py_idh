@@ -205,7 +205,7 @@ class PythonJdbc():
         :param port: idh server port
         :param connection_data: if jdbc_token is provided - here you put a dictionary with the connection details
 
-        :returns: a dataframe with column 'result' and integers 1/0 for each iterations success/failure
+        :returns: a dataframe with the result of the last section that is executed
         """
         self.token = token
         params = {'scriptId': script_id, 'targetBranch': target_branch}
