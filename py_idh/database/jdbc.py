@@ -435,14 +435,10 @@ class PythonJdbc():
                 else:
                     return result['result']
             else:
-                print('taskData:', taskData)
-                print('headers', headers)
-                print('url', f"http://{host or container.nodeHost}:{port or container.nodePort}/api/external/run-sql-statement")
                 result = resp.json()
                 if result.get('error'):
                     raise Exception(f"IDH Error: \n'{result['error']}'")
                 else:
-                    print(result)
                     if isinstance(result.get('data'), str):
                         print(result['data'])
                     else:
