@@ -439,7 +439,7 @@ class PythonJdbc():
                 if result.get('error'):
                     raise Exception(f"IDH Error: \n'{result['error']}'")
                 else:
-                    return pd.DataFrame.from_records(data = result['data'] if result['data'] else [], columns = result['columns']) 
+                    return pd.DataFrame.from_records(data = result['data'] if result['data'] else [], columns = result['data']['columns']) 
             
         except Exception as err:
             if ('ECONNRESET' in str(err) or 'is not registered as websocket client' in str(err)) and attemptNb < 4:
