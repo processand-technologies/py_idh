@@ -439,7 +439,7 @@ class PythonJdbc():
                 if result.get('error'):
                     raise Exception(f"IDH Error: \n'{result['error']}'")
                 else:
-                    print(result['data'])
+                    print(result)
                     if isinstance(result.get('data'), str):
                         print(result['data'])
                     else:
