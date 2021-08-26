@@ -2,3 +2,4 @@ pyyaml
 websockets
 requests
 pandas
+numpy
