@@ -12,6 +12,7 @@ from pathlib import Path
 from threading import Thread
 import sys
 
+from .bigquery import fix_arrays_and_structs as bq_fix_arrays_and_structs
 from ..core.singleton_class import Singleton
 import py_idh.container as container
 
@@ -86,7 +87,8 @@ class PythonJdbc():
         port = None,
         limit = None,
         jdbc_token = False,
-        connection_data = None): 
+        connection_data = None,
+        transformation_options = None): 
         """
         send web request to JAVA Server to start run sql statement
 
@@ -105,6 +107,9 @@ class PythonJdbc():
         :param limit: optional limit to a query to be set
         :param jdbc_token: jdbc server token to send task directly to jdbc server instead of idh server
         :param connection_data: if jdbc_token is provided - here you put a dictionary with the connection details
+        :param transformation_options: dictionary, e.g. if it includes 'transform_bigquery_arrays': True the result df 
+            will be transformed to deal bigquery arrays properly, 
+            if it includes 'transform_bigquery_structs': True bq structs will be partially resolve
 
         :returns: query result as dataframe or None if execution without result set
         """
@@ -124,7 +129,7 @@ class PythonJdbc():
             task_data['jdbc_token'] = jdbc_token
         if limit:
             task_data['params']['limit'] = limit
-        return self._addTask(task_data)
+        return self._addTask(task_data, transformation_options = transformation_options)
 
     def execute_batch (
         self,
@@ -392,7 +397,8 @@ class PythonJdbc():
                 if msg['taskId'] in self._runningTasks:
                     del self._runningTasks[msg['taskId']]
 
-    def _addTask (self, taskData, attemptNb = 0): 
+    def _addTask (self, taskData, attemptNb = 0, transformation_options = None): 
+        transformation_options = transformation_options or {}
         self._checkInitState()
         taskData['clientId'] = self._clientId
         taskData['useRedis'] = False
@@ -442,7 +448,10 @@ class PythonJdbc():
                     if isinstance(result.get('data'), str):
                         print(result['data'])
                     else:
-                        return pd.DataFrame.from_records(data = result['data']['rows'] if result['data'].get('rows') else [], columns = result['data']['columns']) 
+                        df = pd.DataFrame.from_records(data = result['data']['rows'] if result['data'].get('rows') else [], columns = result['data']['columns']) 
+                        if transformation_options.get('transform_bigquery_arrays') == True or transformation_options.get('transform_bigquery_structs') == True:
+                            df = bq_fix_arrays_and_structs(df, fix_structs = transformation_options.get('transform_bigquery_structs', False))
+                        return df
             
         except Exception as err:
             if ('ECONNRESET' in str(err) or 'is not registered as websocket client' in str(err)) and attemptNb < 4:
