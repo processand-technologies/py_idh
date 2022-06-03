@@ -3,7 +3,7 @@
 javaHost: "jdbc"
 javaPort: 3003
 nodeHost: "datahub"
-nodePort: 3001
+nodePort: 3011
 
 # logging level info/debug/root
 loggingLevel: 'info' 
